@@ -1,3 +1,7 @@
+#include <package.hxx>
+
+#include "types.hxx"
+
 enum class PackageQueueType {
     FIFO,
     LIFO
@@ -5,8 +9,6 @@ enum class PackageQueueType {
 
 class IPackageStockpile {
 public:
-    using size_type = std::size_t;
-    using const_iterator = std::list<Package>::const_iterator;
 
     virtual ~IPackageStockpile() = default; //virtual destructor
     virtual void push(Package&& package) = 0; //r-value reference – moves object instead of copying it
