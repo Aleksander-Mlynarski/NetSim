@@ -11,7 +11,7 @@ class IPackageStockpile {
 public:
     using const_iterator = std::list<Package>::const_iterator; //public alias
     virtual ~IPackageStockpile() = default; //virtual destructor
-    virtual void push(Package&& package) = 0; //r-value reference – moves object instead of copying it
+    virtual void push(Package&&) = 0; //r-value reference – moves object instead of copying it
     virtual bool empty() const = 0; //query (added const)
     virtual size_type size() const = 0;//query (added const)
 
