@@ -35,8 +35,8 @@ public:
   NodeCollection<Worker>::const_iterator worker_cend() const;
   NodeCollection<Storehouse>::const_iterator storehouse_cend() const;
 
-  void remove_receiver(NodeCollection<Node>&, ElementID id); // there is a problem with Node
-  // because this method should manage both Workers and Storehouses
+  void remove_receiver(NodeCollection<Worker>&, ElementID id);
+  void remove_receiver(NodeCollection<Storehouse>&, ElementID id);
 
   bool is_consistent() const;
   void do_deliveries(Time t);
