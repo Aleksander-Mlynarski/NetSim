@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
 set(SOURCE_FILES
         src/package.cpp
         src/storage_types.cpp
+        src/factory.cpp
 )
 
 add_library(NetSimLib ${SOURCE_FILES})
