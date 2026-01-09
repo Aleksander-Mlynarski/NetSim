@@ -23,7 +23,7 @@ class IPackageReceiver {
     virtual ElementID get_id() const = 0;
     #if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
     virtual ReceiverType get_receiver_type() const = 0;  // add new method to the interface
- #endif
+    #endif
 };
 
 class ReceiverPreferences{
