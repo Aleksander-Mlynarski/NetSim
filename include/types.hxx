@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <list>
 
 #ifndef TYPES_HXX
 #define TYPES_HXX
