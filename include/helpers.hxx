@@ -6,7 +6,6 @@
 #define HELPERS_HXX
 #include <functional>
 #include <random>
-
 #include "types.hxx"
 
 extern std::random_device rd;

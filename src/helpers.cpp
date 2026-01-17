@@ -14,4 +14,4 @@ double default_probability_generator() {
     return std::generate_canonical<double, 10>(rng);
 }
 
-std::function<double()> probability_generator = default_probability_generator;
+ProbabilityGenerator probability_generator = default_probability_generator;
