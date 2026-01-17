@@ -45,7 +45,7 @@ ElementID Worker::get_id() const {}
 
 void Ramp::deliver_goods(Time t){
 
-  }
+ }
 
 
 
