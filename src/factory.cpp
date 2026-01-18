@@ -25,4 +25,35 @@ void Factory::do_package_passing(){
     }
 }
 
+void Factory::remove_receiver(NodeCollection<Worker>& workers, ElementID id){
+    auto it = workers.find_by_id(id);
+    if (it == workers.end()) return;
 
+    IPackageReceiver* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*it));
+
+    for (auto& ramp: ramps_){
+        ramp.receiver_preferences_.remove_receiver(receiver_ptr);
+    }
+    for (auto& worker : workers_) {
+        worker.receiver_preferences_.remove_receiver(receiver_ptr);
+    }
+
+    workers.remove_by_id(id);
+}
+
+
+void Factory::remove_receiver(NodeCollection<Storehouse>& storehouses, ElementID id){
+    auto it = storehouses.find_by_id(id);
+    if (it == storehouses.end()) return;
+
+    IPackageReceiver* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*it));
+
+    for (auto& ramp: ramps_){
+        ramp.receiver_preferences_.remove_receiver(receiver_ptr);;
+    }
+    for (auto& worker : workers_) {
+        worker.receiver_preferences_.remove_receiver(receiver_ptr);
+    }
+
+    storehouses.remove_by_id(id);
+}

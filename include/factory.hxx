@@ -64,9 +64,11 @@ private:
 
 
 class Factory{
-  NodeCollection<Ramp> ramps_;
-  NodeCollection<Worker> workers_;
-  NodeCollection<Storehouse> storehouses_;
+    NodeCollection<Ramp> ramps_;
+    NodeCollection<Worker> workers_;
+    NodeCollection<Storehouse> storehouses_;
+    void remove_receiver(NodeCollection<Worker>& workers, ElementID id);
+    void remove_receiver(NodeCollection<Storehouse>& storehouses, ElementID id);
 public:
   Factory() = default;
   ~Factory() = default;
@@ -74,8 +76,8 @@ public:
   void add_worker(Worker&& worker) {workers_.add(std::move(worker));}
   void add_storehouse(Storehouse&& storehouse) {storehouses_.add(std::move(storehouse));}
   void remove_ramp(ElementID id) {ramps_.remove_by_id(id);}
-  void remove_worker(ElementID id);
-  void remove_storehouse(ElementID id);
+  void remove_worker(ElementID id) {remove_receiver(workers_, id);}
+  void remove_storehouse(ElementID id) {remove_receiver(storehouses_, id);}
   NodeCollection<Ramp>::iterator find_ramp_by_id(ElementID id) {return ramps_.find_by_id(id);}
   NodeCollection<Worker>::iterator find_worker_by_id(ElementID id) {return workers_.find_by_id(id);}
   NodeCollection<Storehouse>::iterator find_storehouse_by_id(ElementID id) {return storehouses_.find_by_id(id);}
@@ -88,9 +90,6 @@ public:
   NodeCollection<Ramp>::const_iterator ramp_cend() const {return ramps_.cend();}
   NodeCollection<Worker>::const_iterator worker_cend() const {return workers_.cend();}
   NodeCollection<Storehouse>::const_iterator storehouse_cend() const {return storehouses_.cend();}
-
-  void remove_receiver(NodeCollection<Worker>&, ElementID id);
-  void remove_receiver(NodeCollection<Storehouse>&, ElementID id);
 
   bool is_consistent() const;
   void do_deliveries(Time t);
