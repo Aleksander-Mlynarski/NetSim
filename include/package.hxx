@@ -1,12 +1,27 @@
+#ifndef NETSIM_PACKAGE_HXX
+#define NETSIM_PACKAGE_HXX
+
 #include "types.hxx"
+#include <set>
 
 class Package {
-  ElementID id_;
-  public:
-    Package() = default;
-    Package(ElementID id) : id_(id) {}
-    Package(const Package &) = default;
-    Package(Package &&) = default;
-    ElementID get_id() const {return id_;}
-    ~Package() = default;
+public:
+    Package();
+
+    Package(ElementID ID) : ID_(ID) { assigned_IDs.insert(ID_); }
+
+    Package(Package&& package) : ID_(package.ID_) {}
+
+    Package& operator=(Package&& package) noexcept;
+
+    ElementID get_id() const { return ID_; }
+
+    ~Package();
+
+private:
+    ElementID ID_;
+    static std::set<ElementID> assigned_IDs;
+    static std::set<ElementID> freed_IDs;
 };
+
+#endif //NETSIM_PACKAGE_HXX

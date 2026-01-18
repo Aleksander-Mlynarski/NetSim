@@ -1,14 +1,16 @@
-#include <cstddef>
-#include <list>
+#ifndef NETSIM_TYPES_HXX
+#define NETSIM_TYPES_HXX
 
-#ifndef TYPES_HXX
-#define TYPES_HXX
+#include <functional>
 
-using size_type = std::size_t;
-using ElementID = int;
-using TimeOffset = int;
-using Time = int;
-using ProbabilityGenerator = double;
+using ElementID = unsigned;
+using TimeOffset = unsigned;
+using Time = unsigned;
 
-#endif // TYPES_HXX
+using Time = unsigned;
 
+using TimeOffset = Time;
+
+using ProbabilityGenerator = std::function<double()>;
+
+#endif //NETSIM_TYPES_HXX
