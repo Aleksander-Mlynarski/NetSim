@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "factory.hpp"
+#include "factory.hxx"
 
 #include <set>
 

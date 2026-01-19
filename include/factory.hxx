@@ -70,7 +70,7 @@ class Factory{
     NodeCollection<Storehouse> storehouses_;
     void remove_receiver(NodeCollection<Worker>& workers, ElementID id);
     void remove_receiver(NodeCollection<Storehouse>& storehouses, ElementID id);
-    bool has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors);
+    bool has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors) const;
 public:
   Factory() = default;
   ~Factory() = default;

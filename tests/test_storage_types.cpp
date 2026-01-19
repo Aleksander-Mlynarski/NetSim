@@ -1,9 +1,9 @@
 //#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "package.hpp"
-#include "storage_types.hpp"
-#include "types.hpp"
+#include "package.hxx"
+#include "storage_types.hxx"
+#include "types.hxx"
 
 using ::std::cout;
 using ::std::endl;

@@ -1,8 +1,8 @@
 //#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "package.hpp"
-#include "types.hpp"
+#include "package.hxx"
+#include "types.hxx"
 
 TEST(PackageTest, IsAssignedIdLowest) {
     // przydzielanie ID o jeden większych -- utworzenie dwóch obiektów pod rząd

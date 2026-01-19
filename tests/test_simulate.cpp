@@ -1,10 +1,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "nodes.hpp"
-#include "simulation.hpp"
-#include "helpers.hpp"
-#include "reports.hpp"
+#include "nodes.hxx"
+#include "simulation.hxx"
+#include "helpers.hxx"
+#include "reports.hxx"
 
 using ::testing::Return;
 using ::testing::_;

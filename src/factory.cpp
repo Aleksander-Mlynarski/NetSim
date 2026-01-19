@@ -59,7 +59,7 @@ void Factory::remove_receiver(NodeCollection<Storehouse>& storehouses, ElementID
     storehouses.remove_by_id(id);
 }
 
-bool Factory:: has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors) {
+bool Factory:: has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors) const{
     if (node_colors[sender] == NodeColor::VERIFIED) return true;
 
     node_colors[sender] = NodeColor::VISITED;
