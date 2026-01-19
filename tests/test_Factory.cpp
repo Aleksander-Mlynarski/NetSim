@@ -1,8 +1,8 @@
 //#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "factory.hpp"
-#include "nodes.hpp"
+#include "factory.hxx"
+#include "nodes.hxx"
 
 // DEBUG
 #include <iostream>

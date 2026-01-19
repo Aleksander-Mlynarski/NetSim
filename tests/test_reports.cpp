@@ -1,8 +1,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "factory.hpp"
-#include "reports.hpp"
+#include "factory.hxx"
+#include "reports.hxx"
 
 #include <functional>
 
