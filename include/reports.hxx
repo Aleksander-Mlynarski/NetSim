@@ -13,7 +13,7 @@
 
 enum class ElementType {RAMP, WORKER, STOREHOUSE, LINK};
 
-std:: map<std::string, ElementType> map = {{"LOADING_RAMP",ElementType::RAMP}, {"WORKER", ElementType::WORKER},
+std:: map<std::string, ElementType> mapa = {{"LOADING_RAMP",ElementType::RAMP}, {"WORKER", ElementType::WORKER},
                                           {"STOREHOUSE", ElementType::STOREHOUSE}, {"LINK", ElementType::LINK}};
 
 struct ParsedLineData{

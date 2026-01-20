@@ -19,8 +19,8 @@ ParsedLineData parse_line(std::string line){
       wyraz += *it;
     }
   }
-  if (map.count(tokens[0])){
-    Data.type = map[tokens[0]];
+  if (mapa.count(tokens[0])){
+    Data.type = mapa[tokens[0]];
   }
   else{
     throw std::runtime_error("Invalid element type");
