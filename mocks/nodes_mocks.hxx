@@ -7,9 +7,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "config.hpp"
+#include "config.hxx"
 
-#include "nodes.hpp"
+#include "nodes.hxx"
 
 class MockReceiver : public IPackageReceiver {
 public:

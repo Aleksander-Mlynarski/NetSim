@@ -30,6 +30,8 @@ class ReceiverPreferences{
   public:
     using preferences_t = std::map<IPackageReceiver*, double>;
     using const_iterator = preferences_t::const_iterator;
+    const_iterator begin() const { return preferences_.begin(); }
+    const_iterator end() const { return preferences_.end(); }
     ReceiverPreferences() : pg_(probability_generator) {}
     ReceiverPreferences(ProbabilityGenerator pg) : pg_(pg) {}
     void add_receiver(IPackageReceiver* r);
@@ -51,9 +53,9 @@ class PackageSender{
     const std::optional<Package>& get_sending_buffer() const; // Gives read-only access to the sending buffer.
     // No changes to the object are allowed here.
     void push_package(Package&&);
-  private:
+  //private:
     ReceiverPreferences receiver_preferences_;
-    // protected: std::optional<Package> buffer_;
+  protected: std::optional<Package> buffer_;
   };
 
   class Storehouse: public IPackageReceiver{
