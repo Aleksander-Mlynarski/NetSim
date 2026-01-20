@@ -1,7 +1,7 @@
 //
 // Created by Lenovo on 19.01.2026.
 //
-
+#include <iostream>
 #include "reports.hxx"
 #include <vector>
 #include <stdexcept>
@@ -154,4 +154,137 @@ void generate_structure_report(Factory& factory, std::ostream& os) {
     os << "== LOADING RAMPS ==\n\n";
 
     os.flush();
+}
+static std::string receiver_label(const IPackageReceiver& r) {
+    if (r.get_receiver_type() == ReceiverType::WORKER) {
+        return "worker #" + std::to_string(r.get_id());
+    }
+    return "storehouse #" + std::to_string(r.get_id());
+}
+
+static int receiver_rank(const IPackageReceiver& r) {
+    if (r.get_receiver_type() == ReceiverType::STOREHOUSE) return 1;
+    return 2;
+}
+
+static std::vector<const IPackageReceiver*> sorted_receivers(const ReceiverPreferences& prefs) {
+    std::vector<const IPackageReceiver*> out;
+    for (const auto& [r, _] : prefs.get_preferences()) {
+        out.push_back(r);
+    }
+    std::sort(out.begin(), out.end(), [](const IPackageReceiver* a, const IPackageReceiver* b) {
+        int ra = receiver_rank(*a);
+        int rb = receiver_rank(*b);
+        if (ra != rb) return ra < rb;
+        return a->get_id() < b->get_id();
+    });
+    return out;
+}
+
+static void print_receivers(std::ostream& os, const ReceiverPreferences& prefs) {
+    os << "  Receivers:\n";
+    for (const auto* r : sorted_receivers(prefs)) {
+        os << "    " << receiver_label(*r) << "\n";
+    }
+}
+
+static void print_package_list(std::ostream& os,
+                               std::list<Package>::const_iterator b,
+                               std::list<Package>::const_iterator e) {
+    if (b == e) {
+        os << "(empty)";
+        return;
+    }
+    bool first = true;
+    for (auto it = b; it != e; ++it) {
+        if (!first) os << ", ";
+        first = false;
+        os << "#" << it->get_id();
+    }
+}
+
+void generate_structure_report(const Factory& f, std::ostream& os) {
+    os << "== LOADING RAMPS ==\n\n";
+    for (const auto& r : f.get_loading_ramps()) {
+        os << "LOADING RAMP #" << r.get_id() << "\n";
+        os << "  Delivery interval: " << r.get_delivery_interval() << "\n";
+        print_receivers(os, r.receiver_preferences());
+        os << "\n";
+    }
+
+    os << "== WORKERS ==\n\n";
+    for (const auto& w : f.get_workers()) {
+        os << "WORKER #" << w.get_id() << "\n";
+        os << "  Processing time: " << w.get_processing_duration() << "\n";
+        os << "  Queue type: "
+           << (w.get_queue()->get_queue_type() == PackageQueueType::FIFO ? "FIFO" : "LIFO")
+           << "\n";
+        print_receivers(os, w.receiver_preferences());
+        os << "\n";
+    }
+
+    os << "== STOREHOUSES ==\n\n";
+    for (const auto& s : f.get_storehouses()) {
+        os << "STOREHOUSE #" << s.get_id() << "\n\n";
+    }
+}
+
+static void print_worker_state(std::ostream& os, const Worker& w) {
+    os << "WORKER #" << w.get_id() << "\n";
+
+    os << "  PBuffer: ";
+    const auto& pb = w.get_processing_buffer();
+    if (!pb.has_value()) {
+        os << "(empty)\n";
+    } else {
+        os << "#" << pb->get_id() << " (pt = " << w.get_processing_time() << ")\n";
+    }
+
+    os << "  Queue: ";
+    const auto* q = w.get_queue();
+    print_package_list(os, q->cbegin(), q->cend());
+    os << "\n";
+
+    os << "  SBuffer: ";
+    const auto& sb = w.get_sending_buffer();
+    if (!sb.has_value()) {
+        os << "(empty)\n";
+    } else {
+        os << "#" << sb->get_id() << "\n";
+    }
+
+    os << "\n";
+}
+
+static void print_storehouse_state(std::ostream& os, const Storehouse& s) {
+    os << "STOREHOUSE #" << s.get_id() << "\n";
+    os << "  Stock: ";
+    const auto& stock = s.get_stockpile();
+    auto b = stock.cbegin();
+    auto e = stock.cend();
+    if (b == e) {
+        os << "(empty)\n\n";
+        return;
+    }
+    bool first = true;
+    for (auto it = b; it != e; ++it) {
+        if (!first) os << ", ";
+        first = false;
+        os << "#" << it->get_id();
+    }
+    os << "\n\n";
+}
+
+void generate_simulation_turn_report(const Factory& f, std::ostream& os, Time t) {
+    os << "=== [ Turn: " << t << " ] ===\n\n";
+
+    os << "== WORKERS ==\n\n";
+    for (const auto& w : f.get_workers()) {
+        print_worker_state(os, w);
+    }
+
+    os << "== STOREHOUSES ==\n\n";
+    for (const auto& s : f.get_storehouses()) {
+        print_storehouse_state(os, s);
+    }
 }

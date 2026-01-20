@@ -16,6 +16,10 @@ set(SOURCE_FILES
         src/package.cpp
         src/storage_types.cpp
         src/factory.cpp
+        src/reports.cpp
+        src/simulation.cpp
+        src/nodes.cpp
+        src/helpers.cpp
 )
 
 add_library(NetSimLib ${SOURCE_FILES})
