@@ -1,5 +1,5 @@
 //
-// Created by Lenovo on 19.01.2026.
+// Created by mateuszl on 19.01.2026.
 //
 
 #ifndef REPORTS_HXX
