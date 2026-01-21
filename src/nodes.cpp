@@ -10,12 +10,14 @@
 #include <optional>
 #include <map>
 
+// --- ReceiverPreferences ---
+
 void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
     preferences_[r] = 1.0;
     double p = 1.0 / preferences_.size();
     for (auto& [_, prob] : preferences_) {
         prob = p;
-        }
+    }
 }
 
 void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
@@ -31,7 +33,7 @@ void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
     if (preferences_.empty()) return nullptr;
 
-    double p = pg_();   // ⬅️ kluczowe
+    double p = pg_();
     double acc = 0.0;
 
     for (const auto& [receiver, prob] : preferences_) {
@@ -48,6 +50,12 @@ const ReceiverPreferences::preferences_t& ReceiverPreferences::get_preferences()
 }
 
 
+// --- PackageSender ---
+
+void PackageSender::push_package(Package&& p) {
+    buffer_.emplace(std::move(p));
+}
+
 void PackageSender::send_package() {
     if (!buffer_) return;
 
@@ -57,12 +65,27 @@ void PackageSender::send_package() {
     r->receive_package(std::move(*buffer_));
     buffer_.reset();
 }
-void Storehouse::receive_package(Package&& p) {
-    d_->push(std::move(p));
-}
+
 const std::optional<Package>& PackageSender::get_sending_buffer() const {
     return buffer_;
 }
+
+
+// --- Ramp ---
+
+void Ramp::deliver_goods(Time t){
+    if ((t - 1) % di_ == 0) {
+        push_package(Package());
+    }
+}
+
+ElementID Ramp::get_id() const {
+    return id_;
+}
+
+
+// --- Worker ---
+
 void Worker::do_work(Time t){
     if (!processing_buffer_) {
         if (!q_->empty()) {
@@ -77,20 +100,24 @@ void Worker::do_work(Time t){
             processing_buffer_.reset();
         }
     }
-  }
+}
+
 void Worker::receive_package(Package&& p){
     q_->push(std::move(p));
 }
 
 ElementID Worker::get_id() const {
-  return id_;
+    return id_;
 }
 
-void Ramp::deliver_goods(Time t){
-    if ((t - 1) % di_ == 0) {
-        push_package(Package());
-    }
- }
-ElementID Ramp::get_id() const {
+
+// --- Storehouse ---
+Storehouse::Storehouse(ElementID id)
+    : id_(id), d_(std::make_unique<PackageQueue>(PackageQueueType::FIFO)) {}
+void Storehouse::receive_package(Package&& p) {
+    d_->push(std::move(p));
+}
+
+ElementID Storehouse::get_id() const {
     return id_;
 }
