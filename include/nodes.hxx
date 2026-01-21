@@ -18,9 +18,14 @@ enum class ReceiverType{
 
 class IPackageReceiver {
   public:
+    using const_iterator = std::list<Package>::const_iterator;
     virtual ~IPackageReceiver() = default;
     virtual void receive_package(Package&& p) = 0;
     virtual ElementID get_id() const = 0;
+    virtual const_iterator begin() const = 0;
+    virtual const_iterator cbegin() const = 0;
+    virtual const_iterator end() const = 0;
+    virtual const_iterator cend() const = 0;
     #if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
     virtual ReceiverType get_receiver_type() const = 0;  // add new method to the interface
     #endif
@@ -61,11 +66,15 @@ class PackageSender{
   class Storehouse: public IPackageReceiver{
     public:
       ~Storehouse() = default;
+      Storehouse(ElementID id);
       Storehouse(ElementID id,
                 std::unique_ptr<IPackageStockpile> d): id_(id), d_(std::move(d)) {}
       void receive_package(Package&& p) override;
       ElementID get_id() const override;  // add declaration of abstract methods
-
+      const_iterator begin() const override { return d_->begin(); }
+      const_iterator cbegin() const override { return d_->cbegin(); }
+      const_iterator end() const override { return d_->end(); }
+      const_iterator cend() const override { return d_->cend(); }
 #if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
     ReceiverType get_receiver_type() const override {return ReceiverType::STOREHOUSE;} //add implementation of abstract method
 #endif
@@ -87,10 +96,14 @@ class PackageSender{
     Time get_package_processing_start_time() const{return package_processing_start_time_;}//getter
     void receive_package(Package&& p) override;  // add declaration of abstract methods
     ElementID get_id() const override;
+    const_iterator begin() const override { return q_->begin(); }
+    const_iterator cbegin() const override { return q_->cbegin(); }
+    const_iterator end() const override { return q_->end(); }
+    const_iterator cend() const override { return q_->cend(); }
 
-#if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
-    ReceiverType get_receiver_type() const override{return ReceiverType::WORKER;} // add implementation of abstract method
-#endif
+    #if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
+        ReceiverType get_receiver_type() const override{return ReceiverType::WORKER;} // add implementation of abstract method
+    #endif
 
   private:
     ElementID id_; // add fields
