@@ -1,7 +1,7 @@
 #include <iostream>
-#include "factory.hpp"
-#include "simulation.hpp"
-#include "reports.hpp"
+#include "factory.hxx"
+#include "simulation.hxx"
+#include "reports.hxx"
 
 int main() {
     Factory f;

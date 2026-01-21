@@ -67,9 +67,9 @@ void handle_link(const ParsedLineData& pld, Factory& factory) {
     }
 
     if (src_type == "ramp") {
-        factory.find_ramp_by_id(src_id)->receiver_ptr.add_receiver(receiver);
+        factory.find_ramp_by_id(src_id)->receiver_preferences_.add_receiver(receiver);
     } else if (src_type == "worker") {
-        factory.find_worker_by_id(src_id)->receiver_ptr.add_receiver(receiver);
+        factory.find_worker_by_id(src_id)->receiver_preferences_.add_receiver(receiver);
     }
 }
 
@@ -125,8 +125,8 @@ void save_factory_structure(Factory& factory, std::ostream& os) {
 
     os << "\n; == WORKERS ==\n\n";
     for (auto it = factory.worker_cbegin(); it != factory.worker_cend(); ++it) {
-        os << "WORKER id=" << it->get_id() << " processing-time=" << it->get_processing_time()
-           << " queue-type=" << (it->get_queue()->get_queue_type() == PackageQueueType::LIFO ? "LIFO" : "FIFO") << "\n";
+        os << "WORKER id=" << it->get_id() << " processing-time=" << it->get_processing_duration()
+           << " queue-type=" << (it->get_receiver_type() == ReceiverType::WORKER ? "FIFO" : "LIFO") << "\n";
     }
 
     os << "\n; == STOREHOUSES ==\n\n";
