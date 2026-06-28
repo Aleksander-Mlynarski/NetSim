@@ -1,5 +1,5 @@
-#ifndef NETSIM_PACKAGE_HXX
-#define NETSIM_PACKAGE_HXX
+#ifndef PACKAGE_HXX
+#define PACKAGE_HXX
 
 #include "types.hxx"
 #include <set>
@@ -10,7 +10,7 @@ public:
 
     Package(ElementID ID) : ID_(ID) { assigned_IDs.insert(ID_); }
 
-    Package(Package&& package) : ID_(package.ID_) {}
+    Package(Package&& package) noexcept : ID_(package.ID_) { package.ID_ = 0; }
 
     Package& operator=(Package&& package) noexcept;
 
@@ -24,4 +24,4 @@ private:
     static std::set<ElementID> freed_IDs;
 };
 
-#endif //NETSIM_PACKAGE_HXX
+#endif //PACKAGE_HXX

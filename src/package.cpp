@@ -7,10 +7,15 @@ std::set<ElementID> Package::freed_IDs = {};
 Package& Package::operator=(Package&& package) noexcept {
     if (this == &package)
         return *this;
-    assigned_IDs.erase(this->ID_);
-    freed_IDs.insert(this->ID_);
-    this->ID_ = package.ID_;
-    assigned_IDs.insert(this->ID_);
+    if (ID_ != 0) {
+        assigned_IDs.erase(ID_);
+        freed_IDs.insert(ID_);
+    }
+    ID_ = package.ID_;
+    if (ID_ != 0) {
+        assigned_IDs.insert(ID_);
+    }
+    package.ID_ = 0;
     return *this;
 }
 
@@ -29,6 +34,7 @@ Package::Package() {
 }
 
 Package::~Package() {
+    if (ID_ == 0) return;
     freed_IDs.insert(ID_);
     assigned_IDs.erase(ID_);
 }

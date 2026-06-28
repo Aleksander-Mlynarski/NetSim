@@ -67,9 +67,9 @@ void handle_link(const ParsedLineData& pld, Factory& factory) {
     }
 
     if (src_type == "ramp") {
-        factory.find_ramp_by_id(src_id)->receiver_ptr.add_receiver(receiver);
+        factory.find_ramp_by_id(src_id)->receiver_preferences_.add_receiver(receiver);
     } else if (src_type == "worker") {
-        factory.find_worker_by_id(src_id)->receiver_ptr.add_receiver(receiver);
+        factory.find_worker_by_id(src_id)->receiver_preferences_.add_receiver(receiver);
     }
 }
 
@@ -125,7 +125,7 @@ void save_factory_structure(Factory& factory, std::ostream& os) {
 
     os << "\n; == WORKERS ==\n\n";
     for (auto it = factory.worker_cbegin(); it != factory.worker_cend(); ++it) {
-        os << "WORKER id=" << it->get_id() << " processing-time=" << it->get_processing_time()
+        os << "WORKER id=" << it->get_id() << " processing-time=" << it->get_processing_duration()
            << " queue-type=" << (it->get_queue()->get_queue_type() == PackageQueueType::LIFO ? "LIFO" : "FIFO") << "\n";
     }
 
@@ -135,9 +135,8 @@ void save_factory_structure(Factory& factory, std::ostream& os) {
     }
 
     os << "\n; == LINKS ==\n\n";
-    auto print_links = [&](auto& node, std::string type_prefix) {
-        auto receivers = node.receiver_ptr.get_all_receivers();
-        for (auto& rec : receivers) {
+    auto print_links = [&](const auto& node, const std::string& type_prefix) {
+        for (const auto& [rec, _] : node.receiver_preferences_.get_preferences()) {
             std::string dest_type = (rec->get_receiver_type() == ReceiverType::WORKER) ? "worker" : "store";
             os << "LINK src=" << type_prefix << "-" << node.get_id()
                << " dest=" << dest_type << "-" << rec->get_id() << "\n";
@@ -150,11 +149,6 @@ void save_factory_structure(Factory& factory, std::ostream& os) {
     os.flush();
 }
 
-void generate_structure_report(Factory& factory, std::ostream& os) {
-    os << "== LOADING RAMPS ==\n\n";
-
-    os.flush();
-}
 static std::string receiver_label(const IPackageReceiver& r) {
     if (r.get_receiver_type() == ReceiverType::WORKER) {
         return "worker #" + std::to_string(r.get_id());
@@ -204,32 +198,32 @@ static void print_package_list(std::ostream& os,
 }
 
 void generate_structure_report(const Factory& f, std::ostream& os) {
-    os << "== LOADING RAMPS ==\n\n";
-    for (const auto& r : f.get_loading_ramps()) {
-        os << "LOADING RAMP #" << r.get_id() << "\n";
-        os << "  Delivery interval: " << r.get_delivery_interval() << "\n";
-        print_receivers(os, r.receiver_preferences());
+    os << "\n== LOADING RAMPS ==\n\n";
+    for (auto it = f.ramp_cbegin(); it != f.ramp_cend(); ++it) {
+        os << "LOADING RAMP #" << it->get_id() << "\n";
+        os << "  Delivery interval: " << it->get_delivery_interval() << "\n";
+        print_receivers(os, it->receiver_preferences_);
         os << "\n";
     }
 
-    os << "== WORKERS ==\n\n";
-    for (const auto& w : f.get_workers()) {
-        os << "WORKER #" << w.get_id() << "\n";
-        os << "  Processing time: " << w.get_processing_duration() << "\n";
+    os << "\n== WORKERS ==\n\n";
+    for (auto it = f.worker_cbegin(); it != f.worker_cend(); ++it) {
+        os << "WORKER #" << it->get_id() << "\n";
+        os << "  Processing time: " << it->get_processing_duration() << "\n";
         os << "  Queue type: "
-           << (w.get_queue()->get_queue_type() == PackageQueueType::FIFO ? "FIFO" : "LIFO")
+           << (it->get_queue()->get_queue_type() == PackageQueueType::FIFO ? "FIFO" : "LIFO")
            << "\n";
-        print_receivers(os, w.receiver_preferences());
+        print_receivers(os, it->receiver_preferences_);
         os << "\n";
     }
 
-    os << "== STOREHOUSES ==\n\n";
-    for (const auto& s : f.get_storehouses()) {
-        os << "STOREHOUSE #" << s.get_id() << "\n\n";
+    os << "\n== STOREHOUSES ==\n\n";
+    for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); ++it) {
+        os << "STOREHOUSE #" << it->get_id() << "\n\n";
     }
 }
 
-static void print_worker_state(std::ostream& os, const Worker& w) {
+static void print_worker_state(std::ostream& os, const Worker& w, Time t) {
     os << "WORKER #" << w.get_id() << "\n";
 
     os << "  PBuffer: ";
@@ -237,7 +231,7 @@ static void print_worker_state(std::ostream& os, const Worker& w) {
     if (!pb.has_value()) {
         os << "(empty)\n";
     } else {
-        os << "#" << pb->get_id() << " (pt = " << w.get_processing_time() << ")\n";
+        os << "#" << pb->get_id() << " (pt = " << w.get_processing_time(t) << ")\n";
     }
 
     os << "  Queue: ";
@@ -279,12 +273,13 @@ void generate_simulation_turn_report(const Factory& f, std::ostream& os, Time t)
     os << "=== [ Turn: " << t << " ] ===\n\n";
 
     os << "== WORKERS ==\n\n";
-    for (const auto& w : f.get_workers()) {
-        print_worker_state(os, w);
+    for (auto it = f.worker_cbegin(); it != f.worker_cend(); ++it) {
+        print_worker_state(os, *it, t);
     }
+    os << "\n";
 
     os << "== STOREHOUSES ==\n\n";
-    for (const auto& s : f.get_storehouses()) {
-        print_storehouse_state(os, s);
+    for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); ++it) {
+        print_storehouse_state(os, *it);
     }
 }

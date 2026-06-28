@@ -18,6 +18,12 @@ public:
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
 
+    NodeCollection() = default;
+    NodeCollection(const NodeCollection&) = delete;
+    NodeCollection& operator=(const NodeCollection&) = delete;
+    NodeCollection(NodeCollection&&) = default;
+    NodeCollection& operator=(NodeCollection&&) = default;
+
     iterator begin() { return collection_.begin(); }
     iterator end() { return collection_.end(); }
 
@@ -28,7 +34,7 @@ public:
     const_iterator cend() const { return collection_.cend(); }
 
     void add(Node&& node) {
-        collection_.push_back(std::move(node));
+        collection_.emplace_back(std::move(node));
     }
 
     iterator find_by_id(ElementID id) {
@@ -74,6 +80,10 @@ class Factory{
 public:
   Factory() = default;
   ~Factory() = default;
+  Factory(const Factory&) = delete;
+  Factory& operator=(const Factory&) = delete;
+  Factory(Factory&&) = default;
+  Factory& operator=(Factory&&) = default;
   void add_ramp(Ramp&& ramp) {ramps_.add(std::move(ramp));}
   void add_worker(Worker&& worker) {workers_.add(std::move(worker));}
   void add_storehouse(Storehouse&& storehouse) {storehouses_.add(std::move(storehouse));}

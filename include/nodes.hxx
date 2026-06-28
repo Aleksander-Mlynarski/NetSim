@@ -54,6 +54,7 @@ class PackageSender{
     virtual ~PackageSender() = default;
     PackageSender() = default; // add default constructor
     PackageSender(PackageSender&&) = default;
+    PackageSender& operator=(PackageSender&&) = default;
     void send_package();
     const std::optional<Package>& get_sending_buffer() const; // Gives read-only access to the sending buffer.
     // No changes to the object are allowed here.
@@ -69,6 +70,10 @@ class PackageSender{
       Storehouse(ElementID id);
       Storehouse(ElementID id,
                 std::unique_ptr<IPackageStockpile> d): id_(id), d_(std::move(d)) {}
+      Storehouse(Storehouse&&) = default;
+      Storehouse& operator=(Storehouse&&) = default;
+      Storehouse(const Storehouse&) = delete;
+      Storehouse& operator=(const Storehouse&) = delete;
       void receive_package(Package&& p) override;
       ElementID get_id() const override;  // add declaration of abstract methods
       const_iterator begin() const override { return d_->begin(); }
@@ -78,6 +83,7 @@ class PackageSender{
 #if (defined EXERCISE_ID && EXERCISE_ID != EXERCISE_ID_NODES)
     ReceiverType get_receiver_type() const override {return ReceiverType::STOREHOUSE;} //add implementation of abstract method
 #endif
+      const IPackageStockpile& get_stockpile() const { return *d_; }
 
   private:
     ElementID id_;
@@ -90,10 +96,19 @@ class PackageSender{
     Worker(ElementID id,
            TimeOffset pd,
            std::unique_ptr<IPackageQueue> q): id_(id), pd_(pd), q_(std::move(q)) {}
+    Worker(Worker&&) = default;
+    Worker& operator=(Worker&&) = default;
+    Worker(const Worker&) = delete;
+    Worker& operator=(const Worker&) = delete;
     void do_work(Time t);
     TimeOffset get_processing_duration() const{return pd_;}
-    //getter
-    Time get_package_processing_start_time() const{return package_processing_start_time_;}//getter
+    Time get_package_processing_start_time() const{return package_processing_start_time_;}
+    const std::optional<Package>& get_processing_buffer() const { return processing_buffer_; }
+    Time get_processing_time(Time t) const {
+        if (!processing_buffer_) return 0;
+        return t - package_processing_start_time_ + 1;
+    }
+    const IPackageQueue* get_queue() const { return q_.get(); }
     void receive_package(Package&& p) override;  // add declaration of abstract methods
     ElementID get_id() const override;
     const_iterator begin() const override { return q_->begin(); }
@@ -117,6 +132,10 @@ class PackageSender{
     ~Ramp() = default;
     Ramp(ElementID id,
          TimeOffset di): id_(id), di_(di) {}
+    Ramp(Ramp&&) = default;
+    Ramp& operator=(Ramp&&) = default;
+    Ramp(const Ramp&) = delete;
+    Ramp& operator=(const Ramp&) = delete;
     void deliver_goods(Time t);
     TimeOffset get_delivery_interval() const{return  di_;} //getter
     ElementID get_id() const; // getter

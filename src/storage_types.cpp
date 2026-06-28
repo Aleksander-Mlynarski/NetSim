@@ -14,4 +14,3 @@ Package PackageQueue::pop() {
 
     return package;
 }
-std::list<Package> package_list_;
