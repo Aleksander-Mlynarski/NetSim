@@ -2,55 +2,174 @@
 
 **Symulator dyskretnej sieci produkcyjnej** — projekt zespołowy zrealizowany w ramach zajęć z *Programowania Obiektowego* na **AGH University of Science and Technology**.
 
-NetSim modeluje przepływ półproduktów (`Package`) przez wielowarstwową sieć logistyczną fabryki: rampy załadunkowe dostarczają towar, robotnicy przetwarzają go w kolejkach FIFO/LIFO, a magazyny gromadzą gotowy produkt. Całość jest sterowana dyskretnym zegarem symulacji, z walidacją spójności topologii, probabilistycznym routingiem paczek oraz systemem raportowania stanu.
-
-> Projekt obejmuje kilka tysięcy linii logiki rozłożonej na moduły, dziesiątki testów jednostkowych (GoogleTest / GoogleMock) oraz zaawansowane mechanizmy C++17: semantykę przenoszenia, `std::optional`, szablony, polimorfizm interfejsów i wstrzykiwanie generatora losowego.
+NetSim modeluje przepływ półproduktów (`Package`) przez wielowarstwową sieć logistyczną fabryki: rampy załadunkowe dostarczają towar, robotnicy przetwarzają go w kolejkach FIFO/LIFO, a magazyny gromadzą gotowy produkt. Symulacja przebiega w dyskretnych turach, z walidacją spójności topologii, probabilistycznym routingiem paczek oraz generowaniem raportów stanu.
 
 ---
 
 ## Spis treści
 
 - [Autorzy](#autorzy)
-- [Opis problemu](#opis-problemu)
+- [Wymagania](#wymagania)
+- [Szybki start](#szybki-start)
+- [Budowanie i uruchamianie](#budowanie-i-uruchamianie)
+- [Testy](#testy)
+- [Konfiguracja](#konfiguracja)
 - [Architektura](#architektura)
 - [Moduły projektu](#moduły-projektu)
 - [Model symulacji](#model-symulacji)
 - [Format pliku fabryki](#format-pliku-fabryki)
-- [Wymagania](#wymagania)
-- [Budowanie i uruchamianie](#budowanie-i-uruchamianie)
-- [Testy](#testy)
-- [Konfiguracja ćwiczenia](#konfiguracja-ćwiczenia)
 - [Struktura katalogów](#struktura-katalogów)
 - [Materiały](#materiały)
+- [Licencja](#licencja)
 
 ---
 
 ## Autorzy
 
-Projekt został opracowany **zespołowo** — każdy moduł odpowiada za odrębny fragment architektury:
-
-| Autor | Zakres odpowiedzialności |
-|-------|--------------------------|
-| **Aleksander Młynarski** ([alekm](mailto:alek.mlynarski05@gmail.com)) | Węzły sieci (`Ramp`, `Worker`, `Storehouse`), `ReceiverPreferences`, `PackageSender`, moduł `helpers`, mocki testowe |
-| **Mateusz Łaś** ([mateuszl](mailto:mateuszlas8@gmail.com)) | Klasa `Factory`, kolekcja węzłów (`NodeCollection`), walidacja spójności sieci (DFS), operacje symulacyjne fabryki |
-| **Miłosz** | Silnik symulacji (`simulate`), integracja callbacków raportowania |
-| **Maciej Maciejewski** ([poporosu](mailto:maciejewski1234556@gmail.com)) | Parsowanie i serializacja struktury fabryki, generowanie raportów (`reports`) |
+- Aleksander Młynarski
+- Mateusz Łaś
+- Maciej Maciejewski
 
 *Kurs: Programowanie obiektowe · AGH · 2025/2026*
 
 ---
 
-## Opis problemu
+## Wymagania
 
-Celem projektu jest zbudowanie **obiektowego symulatora fabryki**, w którym:
+**Docker (zalecane)**
 
-1. Użytkownik definiuje topologię sieci (rampy → robotnicy → magazyny) w pliku tekstowym lub programowo.
-2. System weryfikuje, czy **każda ścieżka prowadzi do magazynu** (spójność sieci).
-3. Symulacja przebiega w **turach** — w każdej turze wykonywane są dostawy, przekazywanie paczek i przetwarzanie.
-4. Routing paczek odbywa się **probabilistycznie** — nadawca wybiera odbiorcę wg znormalizowanych preferencji.
-5. Generowane są **raporty strukturalne** (topologia) i **raporty tur** (stan buforów, kolejek, magazynu).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 4.x+ lub Docker Engine z Compose v2
 
-Projekt wymaga głębokiego zrozumienia: RAII, reguł pięciu (Rule of Five), iteratorów, szablonów, polimorfizmu dynamicznego oraz testowania z mockami.
+**Lokalnie (alternatywa)**
+
+| Narzędzie | Wersja |
+|-----------|--------|
+| CMake | ≥ 3.13 |
+| Kompilator C++ | C++17 (GCC 8+, Clang 7+, MSVC 2019+) |
+| GoogleTest | pobierany automatycznie przez CMake `FetchContent` |
+
+---
+
+## Szybki start
+
+```bash
+git clone <repo-url>
+cd NetSim
+docker compose build
+docker compose run --rm test
+docker compose run --rm run
+```
+
+| Komenda | Opis |
+|---------|------|
+| `docker compose build` | Kompilacja projektu w kontenerze |
+| `docker compose run --rm test` | Uruchomienie zestawu testów (`NetSimTests`) |
+| `docker compose run --rm run` | Uruchomienie symulacji (`NetSim`) |
+
+---
+
+## Budowanie i uruchamianie
+
+### Docker
+
+```bash
+docker compose build
+docker compose run --rm run
+```
+
+### Lokalnie
+
+```bash
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+Po kompilacji pliki wykonywalne znajdują się w katalogu `build/`:
+
+| Platforma | Program | Testy |
+|-----------|---------|-------|
+| Linux / WSL / macOS | `./NetSim` | `./NetSimTests` |
+| Windows | `NetSim.exe` | `NetSimTests.exe` |
+
+Katalog `build/` oraz binaria nie są śledzone w repozytorium — generowane są wyłącznie w procesie kompilacji.
+
+### Punkt wejścia
+
+Program `main.cpp` wczytuje definicję fabryki z pliku `examples/factory.txt` i uruchamia symulację z raportowaniem okresowym. Parametry uruchomienia (liczba tur, interwał raportów, ścieżka do pliku) konfiguruje się w `main.cpp`.
+
+---
+
+## Testy
+
+Projekt zawiera 32 scenariusze testowe w katalogu `tests/`, uruchamiane przez jeden plik wykonywalny `NetSimTests`.
+
+**Docker**
+
+```bash
+docker compose run --rm test
+docker compose run --rm test ./NetSimTests --gtest_filter=FactoryTest.*
+```
+
+**Lokalnie**
+
+```bash
+cd build
+ctest --output-on-failure
+./NetSimTests
+./NetSimTests --gtest_filter=FactoryTest.*
+```
+
+| Plik testowy | Zakres |
+|--------------|--------|
+| `test_package.cpp` | Przydzielanie ID, semantyka move |
+| `test_storage_types.cpp` | Kolejki FIFO / LIFO |
+| `test_nodes.cpp` | Buforowanie, dostawy, preferencje odbiorców, mocki |
+| `test_Factory.cpp` | Spójność sieci, usuwanie odbiorców |
+| `test_factory_io.cpp` | Parser i serializacja struktury fabryki |
+| `test_reports.cpp` | Raporty strukturalne i tur |
+| `test_simulate.cpp` | Symulacja end-to-end |
+
+Oczekiwany wynik: `[  PASSED  ] 32 tests.`
+
+---
+
+## Konfiguracja
+
+Projekt nie korzysta ze zmiennych środowiskowych. Konfiguracja odbywa się przez pliki źródłowe:
+
+| Cel | Plik | Parametry |
+|-----|------|-----------|
+| Parametry symulacji | `main.cpp` | `simulation_turns`, `report_every_n_turns`, `factory_file` |
+| Topologia fabryki | `examples/factory.txt` | rampy, robotnicy, magazyny, linki |
+| Etap ćwiczenia (kompilacja) | `include/config.hxx` | makro `EXERCISE_ID` |
+
+**`main.cpp`**
+
+```cpp
+const char* factory_file = "examples/factory.txt";
+const TimeOffset simulation_turns = 10;
+const TimeOffset report_every_n_turns = 2;
+```
+
+**`examples/factory.txt`** — parametry węzłów:
+
+| Parametr | Opis |
+|----------|------|
+| `delivery-interval` | Interwał dostaw paczek na rampie (w turach) |
+| `processing-time` | Czas przetwarzania paczki przez robotnika (w turach) |
+| `queue-type` | Typ kolejki robotnika: `FIFO` lub `LIFO` |
+| `LINK src=... dest=...` | Połączenie między węzłami sieci |
+
+Zmiana `examples/factory.txt` wymaga jedynie ponownego uruchomienia programu. Zmiana `main.cpp` lub `config.hxx` wymaga przebudowania projektu.
+
+**`include/config.hxx`**
+
+```cpp
+#define EXERCISE_ID EXERCISE_ID_FACTORY
+```
+
+Makro `EXERCISE_ID` steruje etapem ćwiczenia AGH i włącza kolejne fragmenty interfejsu (`WITH_PROBABILITY_GENERATOR`, `WITH_RECEIVER_TYPE`).
 
 ---
 
@@ -85,102 +204,84 @@ flowchart LR
     SIM --> REPORTS
 ```
 
-### Hierarchia klas (uproszczona)
+### Hierarchia klas
 
 ```
 IPackageStockpile ──► IPackageQueue ──► PackageQueue (FIFO / LIFO)
 IPackageReceiver  ──► Storehouse, Worker
-PackageSender     ──► Ramp, Worker (dziedziczenie wielokrotne)
-ReceiverPreferences  — probabilistyczny wybór odbiorcy
-Package              — globalne zarządzanie unikalnymi ID
-Factory              — graf sieci + walidacja + orkiestracja tur
+PackageSender     ──► Ramp, Worker
+ReceiverPreferences
+Package
+Factory
 ```
 
 ---
 
 ## Moduły projektu
 
-### `Package` — identyfikacja półproduktów
+### `Package`
 
-- Globalna pula ID z **reuse** po zniszczeniu obiektu (`assigned_IDs` / `freed_IDs`).
-- Poprawna semantyka **move** (konstruktor i operator przypisania) bez podwójnego zwalniania identyfikatorów.
+Globalna pula identyfikatorów z mechanizmem reuse (`assigned_IDs` / `freed_IDs`) oraz semantyką move bez podwójnego zwalniania ID.
 
-### `storage_types` — kolejki magazynowe
+### `storage_types`
 
-- Abstrakcyjne interfejsy `IPackageStockpile` i `IPackageQueue`.
-- Implementacja `PackageQueue` z trybami **FIFO** i **LIFO**.
+Interfejsy `IPackageStockpile`, `IPackageQueue` oraz implementacja `PackageQueue` (FIFO / LIFO).
 
-### `nodes` — węzły sieci
+### `nodes`
 
 | Klasa | Rola |
 |-------|------|
-| `Ramp` | Dostarcza nowe paczki co *N* tur (`delivery-interval`) |
-| `Worker` | Kolejka wejściowa, bufor przetwarzania (PBuffer), bufor wysyłki (SBuffer) |
-| `Storehouse` | Końcowy magazyn (stockpile) |
-| `ReceiverPreferences` | Mapa odbiorców z prawdopodobieństwami; automatyczne skalowanie przy add/remove |
-| `PackageSender` | Bufor wysyłki + wybór odbiorcy i `send_package()` |
+| `Ramp` | Dostarcza paczki co *N* tur |
+| `Worker` | Kolejka, bufor przetwarzania (PBuffer), bufor wysyłki (SBuffer) |
+| `Storehouse` | Magazyn końcowy |
+| `ReceiverPreferences` | Probabilistyczny wybór odbiorcy |
+| `PackageSender` | Bufor wysyłki i przekazywanie paczek |
 
-### `factory` — zarządzanie siecią
+### `factory`
 
-- `NodeCollection<T>` — szablonowa kolekcja na `std::list` (stabilność wskaźników przy modyfikacji).
-- `is_consistent()` — **przeszukiwanie DFS** z kolorowaniem węzłów (`UNVISITED` / `VISITED` / `VERIFIED`); każdy nadawca musi mieć osiągalny magazyn.
-- `remove_worker` / `remove_storehouse` — kaskadowe usuwanie odbiorcy ze wszystkich preferencji w sieci.
+Szablonowa kolekcja `NodeCollection<T>` na `std::list`, walidacja spójności sieci algorytmem DFS oraz operacje orkiestracji tur.
 
-### `simulation` — silnik tur
+### `simulation`
 
-Każda tura `t = 1 … d`:
+Silnik dyskretny: dostawy → przekazywanie paczek → przetwarzanie → opcjonalny callback raportowania.
 
-1. **`do_deliveries(t)`** — rampy generują paczki
-2. **`do_package_passing()`** — rampy i robotnicy wysyłają z buforów
-3. **`do_work(t)`** — robotnicy przetwarzają paczki
-4. **Callback raportowania** (opcjonalny)
+### `reports`
 
-### `reports` — I/O i raporty
+Parser i serializacja struktury fabryki, raporty topologii i stanu tur, notyfikatory raportów.
 
-- `load_factory_structure` / `save_factory_structure` — parser linii poleceń z komentarzami (`;`).
-- `generate_structure_report` — raport topologii sieci.
-- `generate_simulation_turn_report` — snapshot stanu w danej turze.
-- `IntervalReportNotifier` / `SpecificTurnsReportNotifier` — strategie wyzwalania raportów.
+### `helpers`
 
-### `helpers` — losowość
-
-- Generator Mersenne Twister (`std::mt19937`) + `std::generate_canonical`.
-- Wstrzykiwalny `ProbabilityGenerator` — podmieniany mockiem w testach (GoogleMock).
+Generator pseudolosowy (Mersenne Twister) z możliwością wstrzyknięcia zamiennika w testach.
 
 ---
 
 ## Model symulacji
 
-```
-Tura t:
-  ┌─────────────────────────────────────────────────────────┐
-  │ 1. Dostawy      Ramp.deliver_goods(t)  → nowe Package   │
-  │ 2. Wysyłka      Ramp/Worker.send_package() → routing    │
-  │ 3. Praca        Worker.do_work(t)      → przetwarzanie  │
-  │ 4. Raport       callback(f, t)         → opcjonalnie    │
-  └─────────────────────────────────────────────────────────┘
-```
+Każda tura `t = 1 … d`:
 
-**Dostawa na rampie:** paczka pojawia się, gdy `(t - 1) % delivery_interval == 0`.
+1. `do_deliveries(t)` — rampy generują paczki
+2. `do_package_passing()` — przekazywanie paczek między węzłami
+3. `do_work(t)` — przetwarzanie przez robotników
+4. Callback raportowania (opcjonalnie)
 
-**Przetwarzanie u robotnika:** paczka z kolejki trafia do PBuffer; po `processing_time` tur ląduje w SBuffer i może zostać wysłana dalej.
+**Dostawa:** `(t - 1) % delivery_interval == 0`
 
-**Routing:** `ReceiverPreferences::choose_receiver()` losuje odbiorcę z rozkładu prawdopodobieństwa (suma = 1.0).
+**Przetwarzanie:** paczka przechodzi z kolejki → PBuffer → SBuffer po upływie `processing_time` tur.
+
+**Routing:** `ReceiverPreferences::choose_receiver()` — losowanie wg znormalizowanych prawdopodobieństw.
 
 ---
 
 ## Format pliku fabryki
 
-Przykładowa definicja sieci `R → W → S`:
-
 ```text
 ; == LOADING RAMPS ==
 
-LOADING_RAMP id=1 delivery-interval=10
+LOADING_RAMP id=1 delivery-interval=2
 
 ; == WORKERS ==
 
-WORKER id=1 processing-time=2 queue-type=FIFO
+WORKER id=1 processing-time=1 queue-type=FIFO
 
 ; == STOREHOUSES ==
 
@@ -192,102 +293,11 @@ LINK src=ramp-1 dest=worker-1
 LINK src=worker-1 dest=store-1
 ```
 
-- Linie puste i zaczynające się od `;` są ignorowane.
-- `dest` przyjmuje prefiksy `worker-` lub `store-`.
-- Każdy kolejny `LINK` przeskalowuje prawdopodobieństwa odbiorców.
+- Linie puste oraz komentarze (`;`) są ignorowane.
+- Prefiksy `dest`: `worker-`, `store-`.
+- Kolejne wpisy `LINK` przeskalowują prawdopodobieństwa odbiorców.
 
----
-
-## Wymagania
-
-| Narzędzie | Wersja |
-|-----------|--------|
-| **CMake** | ≥ 3.13 |
-| **Kompilator C++** | C++17 (GCC 8+, Clang 7+, MSVC 2017+) |
-| **GoogleTest** | pobierany automatycznie przez CMake `FetchContent` |
-
-> **Windows:** starszy MinGW (np. GCC 6.3) **nie obsługuje** C++17. Zalecane: **WSL2**, MSYS2/MinGW-w64 (GCC 11+) lub Visual Studio 2019+.
-
----
-
-## Budowanie i uruchamianie
-
-```bash
-git clone <repo-url>
-cd NetSim
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
-
-### Program główny
-
-```bash
-./NetSim          # Linux / WSL / macOS
-.\NetSim.exe      # Windows
-```
-
-`main.cpp` uruchamia przykładową symulację 10 tur z raportami co 2 tury (`IntervalReportNotifier`).
-
-### Wczytanie własnej fabryki (API)
-
-```cpp
-#include <fstream>
-#include "reports.hxx"
-#include "simulation.hxx"
-
-int main() {
-    std::ifstream in("moja_fabryka.txt");
-    Factory f = load_factory_structure(in);
-
-    simulate(f, 100, [](Factory& fac, Time t) {
-        // własna logika raportowania
-    });
-}
-```
-
----
-
-## Testy
-
-Projekt zawiera **ponad 30 scenariuszy testowych** w katalogu `tests/`:
-
-| Plik testowy | Zakres |
-|--------------|--------|
-| `test_package.cpp` | ID, move semantics |
-| `test_storage_types.cpp` | FIFO / LIFO |
-| `test_nodes.cpp` | bufor robotnika, dostawy, preferencje, mocki |
-| `test_Factory.cpp` | spójność sieci, usuwanie odbiorców |
-| `test_factory_io.cpp` | parser, serializacja, round-trip |
-| `test_reports.cpp` | format raportów strukturalnych i tur |
-| `test_simulate.cpp` | integracja end-to-end |
-
-```bash
-cd build
-ctest --output-on-failure
-
-# lub bezpośrednio:
-./NetSimTests
-./NetSimTests --gtest_filter=FactoryTest.*
-```
-
----
-
-## Konfiguracja ćwiczenia
-
-Plik `include/config.hxx` steruje etapem rozwoju projektu (ćwiczenia AGH):
-
-```cpp
-#define EXERCISE_ID_PACKAGES    1
-#define EXERCISE_ID_NODES       2
-#define EXERCISE_ID_FACTORY     3
-#define REPORTING               4
-#define SIMULATION              5
-
-#define EXERCISE_ID EXERCISE_ID_FACTORY  // aktualny etap
-```
-
-Wyższy `EXERCISE_ID` włącza kolejne makra (`WITH_PROBABILITY_GENERATOR`, `WITH_RECEIVER_TYPE`) i rozszerza interfejsy klas.
+Przykład: [`examples/factory.txt`](examples/factory.txt)
 
 ---
 
@@ -295,31 +305,24 @@ Wyższy `EXERCISE_ID` włącza kolejne makra (`WITH_PROBABILITY_GENERATOR`, `WIT
 
 ```
 NetSim/
-├── CMakeLists.txt          # build system + FetchContent (gtest)
-├── main.cpp                # punkt wejścia — przykładowa symulacja
-├── include/                # nagłówki (.hxx)
-│   ├── config.hxx          # etap ćwiczenia
-│   ├── types.hxx           # aliasy typów (Time, ElementID, …)
-│   ├── package.hxx
-│   ├── storage_types.hxx
-│   ├── nodes.hxx
-│   ├── factory.hxx
-│   ├── simulation.hxx
-│   ├── reports.hxx
-│   └── helpers.hxx
-├── src/                    # implementacje (.cpp)
-├── tests/                  # testy GoogleTest / GoogleMock
-└── mocks/                  # mocki do testów węzłów i generatora losowego
+├── Dockerfile
+├── docker-compose.yml
+├── CMakeLists.txt
+├── main.cpp
+├── examples/
+│   └── factory.txt
+├── include/
+├── src/
+├── tests/
+└── mocks/
 ```
 
 ---
 
 ## Materiały
 
-Dokumentacja projektu (AGH):
-
-- [Net Simulation — węzły sieci](http://home.agh.edu.pl/~mdig/dokuwiki/doku.php?id=teaching:programming:soft-dev:topics:net-simulation:part_nodes)
-- [Google Mock — drukowanie własnych typów w testach](https://github.com/google/googlemock/blob/master/googlemock/docs/v1_5/CookBook.md#teaching-google-mock-how-to-print-your-values)
+- [Net Simulation — węzły sieci (AGH)](http://home.agh.edu.pl/~mdig/dokuwiki/doku.php?id=teaching:programming:soft-dev:topics:net-simulation:part_nodes)
+- [Google Mock — drukowanie własnych typów](https://github.com/google/googlemock/blob/master/googlemock/docs/v1_5/CookBook.md#teaching-google-mock-how-to-print-your-values)
 
 ---
 
