@@ -10,7 +10,7 @@
 #include <optional>
 #include <map>
 
-// --- ReceiverPreferences ---
+// ReceiverPreferences
 
 void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
     preferences_[r] = 1.0;

@@ -5,12 +5,12 @@
 #include "reports.hxx"
 
 int main() {
-    // --- PARAMETRY SYMULACJI (zmien tutaj) ---
+    // PARAMETRY SYMULACJI
     const char* factory_file = "examples/factory.txt";  // sciezka do pliku z siecia
     const TimeOffset simulation_turns = 10;               // ile tur symulowac
     const TimeOffset report_every_n_turns = 2;            // raport co N tur (0 = wylaczone)
 
-    // --- Wczytanie fabryki ---
+    // Wczytanie fabryki
     Factory f;
     std::ifstream in(factory_file);
     if (in) {
