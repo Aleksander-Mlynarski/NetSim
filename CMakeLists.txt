@@ -41,7 +41,6 @@ set(TEST_SOURCES
         tests/test_reports.cpp
         tests/test_simulate.cpp
         tests/test_storage_types.cpp
-        tests/tests.cpp
 )
 
 add_executable(NetSimTests ${TEST_SOURCES})

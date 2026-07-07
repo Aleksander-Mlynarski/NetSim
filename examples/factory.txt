@@ -1,0 +1,19 @@
+; Przykladowa siec: Rampa -> Robotnik -> Magazyn
+; Edytuj ten plik, zeby zmienic strukture fabryki.
+
+; == LOADING RAMPS ==
+
+LOADING_RAMP id=1 delivery-interval=2
+
+; == WORKERS ==
+
+WORKER id=1 processing-time=1 queue-type=FIFO
+
+; == STOREHOUSES ==
+
+STOREHOUSE id=1
+
+; == LINKS ==
+
+LINK src=ramp-1 dest=worker-1
+LINK src=worker-1 dest=store-1

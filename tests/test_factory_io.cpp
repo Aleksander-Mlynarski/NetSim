@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "factory.hxx"
+#include "reports.hxx"
 
 #include <set>
 

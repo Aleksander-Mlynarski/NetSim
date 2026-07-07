@@ -5,6 +5,7 @@
 #ifndef REPORTS_HXX
 #define REPORTS_HXX
 #include <map>
+#include <set>
 #include <string>
 #include <algorithm>
 #include <ostream>
@@ -13,7 +14,7 @@
 
 enum class ElementType {RAMP, WORKER, STOREHOUSE, LINK};
 
-std:: map<std::string, ElementType> mapa = {{"LOADING_RAMP",ElementType::RAMP}, {"WORKER", ElementType::WORKER},
+inline std::map<std::string, ElementType> mapa = {{"LOADING_RAMP",ElementType::RAMP}, {"WORKER", ElementType::WORKER},
                                           {"STOREHOUSE", ElementType::STOREHOUSE}, {"LINK", ElementType::LINK}};
 
 struct ParsedLineData{
@@ -27,7 +28,6 @@ Factory load_factory_structure(std::istream& is);
 
 void save_factory_structure(Factory& factory, std::ostream& os);
 
-void generate_structure_report(Factory& factory, std::ostream& os);
 class Factory;
 
 class SpecificTurnsReportNotifier {

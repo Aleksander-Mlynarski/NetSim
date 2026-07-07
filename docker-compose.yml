@@ -1,0 +1,23 @@
+services:
+  # Zbuduj obraz: docker compose build
+  build:
+    build: .
+    image: netsim:latest
+
+  # Uruchom wszystkie testy GoogleTest
+  test:
+    image: netsim:latest
+    build: .
+    command: ["./NetSimTests"]
+
+  # Uruchom przykladowa symulacje (main.cpp)
+  run:
+    image: netsim:latest
+    build: .
+    command: ["./NetSim"]
+    volumes:
+      - ./examples:/app/examples:ro
+    working_dir: /app
+
+  # Pojedyncza grupa testow, np.:
+  # docker compose run --rm test ./NetSimTests --gtest_filter=FactoryTest.*
